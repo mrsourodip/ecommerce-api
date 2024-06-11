@@ -57,13 +57,33 @@ const ProductSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    numOfReviews: {
+      type: Number,
+      default: 0
+    },
     user: {
       type: mongoose.Types.ObjectId,
       ref: 'User',
       required: true,
     },
   },
-  { timestamps: true }
+  // timestamps is used for createdAt, updatedAt, toJSON and toObject is for virtuals
+  { timestamps: true, toJSON:{virtuals:true}, toObject: {virtuals: true} }
 );
+
+// using virtual we extract say only match rating for each product when 'reviews' is passed
+ProductSchema.virtual('reviews', {
+  ref: 'Review',
+  localField: '_id',
+  foreignField: 'product',
+  justOne:false,
+  match:{rating: 5}
+})
+
+// using this pre-remove hook, we ensure that before 'removing'(deleting) any product, we remove all associated reviews, using productId
+ProductSchema.pre('remove', async function(next) {
+  await this.model('Review').deleteMany({product: this._id})
+  next()
+})
 
 module.exports = mongoose.model('Product', ProductSchema);
