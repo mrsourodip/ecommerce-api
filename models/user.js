@@ -30,6 +30,7 @@ const UserSchema = new mongoose.Schema({
     },
 });
 
+// before saving, we want to hash the password before storing it in DB
 UserSchema.pre('save', async function () {
     // console.log('hey there')
     // console.log(this.modifiedPaths())
@@ -42,6 +43,7 @@ UserSchema.pre('save', async function () {
     }
 })
 
+// this is an instance function that only exists after the instance is called in the router
 UserSchema.methods.comparePassword = async function (canditatePassword) {
     const isMatch = await bcrypt.compare(canditatePassword, this.password)
     return isMatch;
